@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chess Clock - RI 80</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom, #ff0000, #ffffff);
+      color: #222;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin: 20px 0 10px;
+      color: #fff;
+      text-shadow: 1px 1px 3px #000;
+    }
+
+    .subtitle {
+      color: #222;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+
+    .controls {
+      margin-bottom: 20px;
+    }
+
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 5px;
+      border-radius: 6px;
+      border: none;
+    }
+
+    input {
+      width: 100px;
+    }
+
+    button {
+      background-color: #c00;
+      color: white;
+      cursor: pointer;
+    }
+
+    .clock {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: 600px;
+      margin-top: 20px;
+    }
+
+    .player {
+      flex: 1 1 45%;
+      margin: 10px;
+      padding: 40px 20px;
+      background-color: #fff;
+      border: 4px solid #c00;
+      border-radius: 12px;
+      font-size: 48px;
+      font-weight: bold;
+      text-align: center;
+      user-select: none;
+      transition: background-color 0.3s, transform 0.1s;
+    }
+
+    .player.active {
+      background-color: #ffcccc;
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 600px) {
+      .player {
+        font-size: 36px;
+        padding: 30px 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>CHESS CLOCK</h1>
+
+  <div class="controls">
+    <input type="number" id="timeInput" placeholder="Menit" min="1">
+    <button onclick="startGame()">Mulai</button>
+  </div>
+
+  <div class="clock">
+    <div id="player1" class="player" onclick="handlePlayerClick(0)">00:00</div>
+    <div id="player2" class="player" onclick="handlePlayerClick(1)">00:00</div>
+  </div>
+
+  <script>
+    let timeLeft = [0, 0];
+    let activePlayer = 0;
+    let interval;
+    let gameStarted = false;
+
+    const playerDivs = [
+      document.getElementById('player1'),
+      document.getElementById('player2')
+    ];
+
+    function formatTime(seconds) {
+      const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+      const s = String(seconds % 60).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function updateDisplay() {
+      playerDivs[0].textContent = formatTime(timeLeft[0]);
+      playerDivs[1].textContent = formatTime(timeLeft[1]);
+    }
+
+    function switchPlayer() {
+      if (!gameStarted) return;
+
+      clearInterval(interval);
+
+      // Tambah 2 detik ke pemain yang BARU AKTIF
+      activePlayer = 1 - activePlayer;
+      timeLeft[activePlayer] += 2;
+
+      startCountdown();
+    }
+
+    function startCountdown() {
+      playerDivs.forEach(div => div.classList.remove('active'));
+      playerDivs[activePlayer].classList.add('active');
+
+      interval = setInterval(() => {
+        if (timeLeft[activePlayer] > 0) {
+          timeLeft[activePlayer]--;
+          updateDisplay();
+        } else {
+          clearInterval(interval);
+          alert(`Waktu habis! Pemain ${activePlayer + 1} kalah.`);
+          gameStarted = false;
+        }
+      }, 1000);
+    }
+
+    function startGame() {
+      const minutes = parseInt(document.getElementById('timeInput').value);
+      if (isNaN(minutes) || minutes <= 0) {
+        alert('Masukkan waktu (menit) yang valid!');
+        return;
+      }
+
+      const seconds = minutes * 60;
+      timeLeft = [seconds, seconds];
+      updateDisplay();
+      activePlayer = 0;
+      gameStarted = true;
+      startCountdown();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && gameStarted) {
+        e.preventDefault();
+        switchPlayer();
+      }
+    });
+
+    function handlePlayerClick(clickedPlayer) {
+      if (gameStarted && clickedPlayer !== activePlayer) {
+        switchPlayer();
+      }
+    }
+  </script>
+</body>
+</html>
